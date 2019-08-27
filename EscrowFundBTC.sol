@@ -44,7 +44,7 @@ contract EscrowFundBTC {
     mapping(address => uint256) public investedAmount;
     mapping(address => uint256) public depositedBCNTAmount;
     uint256 public BCNTLockAmount;
-    uint256 public returnedBTCAmount;
+    uint256 public returnedBTCAmounts;
     uint256 public returnedBCNTAmounts;
     mapping(address => uint256) public traderReceiveBTCAmounts;
     mapping(address => uint256) public traderReceiveBCNTAmounts;
@@ -88,8 +88,8 @@ contract EscrowFundBTC {
         _;
     }
 
-    modifier afterStartedBeforeClosed() {
-        require((fundStatus >= 3) && (fundStatus < 6));
+    modifier afterStartedBeforeStopped() {
+        require((fundStatus >= 3) && (fundStatus < 5));
         _;
     }
 
@@ -186,7 +186,7 @@ contract EscrowFundBTC {
 
         address investor;
         // Return BCNT to investors
-        for(uint i = numInvestorsToRefund; i < (numRefundedInvestors.add(numInvestorsToRefund)); i++) {
+        for(uint i = numRefundedInvestors; i < (numRefundedInvestors.add(numInvestorsToRefund)); i++) {
             investor = investors[i];
             if(investedAmount[investor] == 0) continue;
 
@@ -205,7 +205,7 @@ contract EscrowFundBTC {
     }
 
     // Investor quit and withdraw
-    function midwayQuit() afterStartedBeforeClosed isInvestor public {
+    function midwayQuit() afterStartedBeforeStopped isInvestor public {
         uint256 investor_amount = investedAmount[msg.sender];
         investedAmount[msg.sender] = 0;
 
@@ -280,7 +280,7 @@ contract EscrowFundBTC {
     // Return AUM
     function returnAUM(uint256 BTCAmount, uint256 BCNTAmount) running isBincentiveCold public {
 
-        returnedBTCAmount = BTCAmount;
+        returnedBTCAmounts = BTCAmount;
         returnedBCNTAmounts = BCNTAmount;
 
         // Transfer BCNT AUM to trader
@@ -295,7 +295,7 @@ contract EscrowFundBTC {
     function distributeAUM(uint256 numInvestorsToDistribute) stopped isBincentive public {
         require(numAUMDistributedInvestors.add(numInvestorsToDistribute) <= investors.length, "Distributing to more than total number of investors");
 
-        uint256 totalBTCReturned = returnedBTCAmount;
+        uint256 totalBTCReturned = returnedBTCAmounts;
         uint256 totalBCNTReturned = returnedBCNTAmounts;
         // Count `bincentiveCold`'s share in total amount when distributing AUM
         uint256 totalAmount = currentInvestedAmount.add(investedAmount[bincentiveCold]);
@@ -323,7 +323,7 @@ contract EscrowFundBTC {
         // If all investors have received AUM,
         // distribute AUM and return BCNT stake to `bincentiveCold` then close the fund.
         if(numAUMDistributedInvestors >= investors.length) {
-            returnedBTCAmount = 0;
+            returnedBTCAmounts = 0;
             returnedBCNTAmounts = 0;
             currentInvestedAmount = 0;
             // Distribute BTC and BCNT to `bincentiveCold`
