@@ -62,7 +62,7 @@ contract EscrowFundBTC {
     event AbortFund(uint256 num_investors, uint256 totalInvestedAmount);
     event MidwayQuit(address indexed investor, uint256 investAmount, uint256 BCNTWithdrawAmount);
     event DesignateFundManager(address indexed fundManager);
-    event Allocate(address indexed to, uint256 amountStableTokenForInvestment, uint256 amountBCNTForInvestment);
+    event Allocate(address indexed to, uint256 amountBTCForInvestment, uint256 amountBCNTForInvestment);
     event ReturnAUM(uint256 amountBTC, uint256 amountBCNT);
     event DistributeAUM(address indexed to, uint256 amountBTC, uint256 amountBCNT);
 
